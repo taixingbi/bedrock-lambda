@@ -14,4 +14,6 @@ venv/
 tmp.md
 Qwen2.5-*/
 *.safetensors
+*.bin
+pytorch_model.bin
 models/**/weights.npz
