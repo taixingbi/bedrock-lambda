@@ -26,11 +26,6 @@ moved {
 }
 
 moved {
-  from = aws_lambda_permission.function_url
-  to   = module.inference.aws_lambda_permission.function_url
-}
-
-moved {
   from = aws_lambda_permission.function_invoke
   to   = module.inference.aws_lambda_permission.function_invoke
 }

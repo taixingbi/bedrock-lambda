@@ -96,6 +96,9 @@ resource "aws_lambda_function" "inference" {
   depends_on = [aws_iam_role_policy.inference, aws_s3_object.lambda_zip]
 }
 
+# AuthType NONE makes the AWS provider add statement FunctionURLAllowPublicAccess
+# (lambda:InvokeFunctionUrl). Do not declare that statement again — AddPermission
+# returns 409 because the id already exists.
 resource "aws_lambda_function_url" "inference" {
   function_name      = aws_lambda_function.inference.function_name
   authorization_type = "NONE"
@@ -107,14 +110,6 @@ resource "aws_lambda_function_url" "inference" {
     allow_methods = ["POST"]
     max_age       = 86400
   }
-}
-
-resource "aws_lambda_permission" "function_url" {
-  statement_id           = "FunctionURLAllowPublicAccess"
-  action                 = "lambda:InvokeFunctionUrl"
-  function_name          = aws_lambda_function.inference.function_name
-  principal              = "*"
-  function_url_auth_type = "NONE"
 }
 
 resource "aws_lambda_permission" "function_invoke" {

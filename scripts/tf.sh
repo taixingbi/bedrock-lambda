@@ -91,7 +91,6 @@ sys.exit(0 if sys.argv[2] in {s.get("Sid") for s in stmts} else 1)
   fi
 }
 
-adopt_lambda_permission module.inference.aws_lambda_permission.function_url FunctionURLAllowPublicAccess
 adopt_lambda_permission module.inference.aws_lambda_permission.function_invoke FunctionURLAllowInvoke
 
 terraform -chdir="${TF_DIR}" apply -input=false -auto-approve -var-file="${VAR_FILE}"
