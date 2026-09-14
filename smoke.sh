@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Smoke test. Uses profile bitaihang09132026 unless AWS_PROFILE is already set.
+# Smoke-test a deployed environment. Uses profile bitaihang09132026 unless AWS_PROFILE is already set.
 #
-#   ./example.sh dev ministral-8b
-#   ./example.sh prod
-#   FUNCTION_URL='https://..../' INFERENCE_API_KEY='1234' ./example.sh llama4
+#   ./smoke.sh dev ministral-8b
+#   ./smoke.sh prod
+#   FUNCTION_URL='https://..../' INFERENCE_API_KEY='1234' ./smoke.sh llama4
 #
 # Omit the model name to hit every marketplace alias (sync + stream).
 set -euo pipefail

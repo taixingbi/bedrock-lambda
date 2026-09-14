@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Smoke-test marketplace aliases (sync + stream).
 #
-#   ./scripts/smoke.sh
+#   ./smoke.sh dev ministral-8b
 #   ./scripts/smoke.sh ministral-8b llama4
 #   FUNCTION_URL='https://..../' ./scripts/smoke.sh ministral-8b
 #

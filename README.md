@@ -372,7 +372,7 @@ curl -sS -N -X POST "${FUNCTION_URL}v1/chat/completions" \
   }'
 ```
 
-See [`scripts/smoke.sh`](scripts/smoke.sh) (`./scripts/smoke.sh ministral-8b`) for a sync+stream smoke test against the root-account Function URL.
+See [`smoke.sh`](smoke.sh) (`./smoke.sh dev ministral-8b`, or `./smoke.sh prod`) for a sync+stream smoke test against that environment's Function URL.
 
 Amazon Nova Pro (marketplace):
 
