@@ -91,7 +91,7 @@ Optional catalog manifest:
 
 ```bash
 ./scripts/upload-model-to-s3.sh nova-pro
-# → s3://bedrock-models-646821141010/amazon/nova-pro-v1/model-manifest.json
+# → s3://huggingface-bedrock-models-103714492562/amazon/nova-pro-v1/model-manifest.json
 ```
 
 | Mode | Bedrock ID |
@@ -115,9 +115,9 @@ Enable Meta model access in the Bedrock console. Friendly aliases default to the
 
 ```bash
 ./scripts/upload-model-to-s3.sh llama
-# → s3://bedrock-models-646821141010/meta/llama3-3-70b-instruct/model-manifest.json
+# → s3://huggingface-bedrock-models-103714492562/meta/llama3-3-70b-instruct/model-manifest.json
 ./scripts/upload-model-to-s3.sh llama4
-# → s3://bedrock-models-646821141010/meta/llama4-maverick-17b-instruct/model-manifest.json
+# → s3://huggingface-bedrock-models-103714492562/meta/llama4-maverick-17b-instruct/model-manifest.json
 ```
 
 ### MiniLM-L12-H384 (in-process classifier)
@@ -130,7 +130,7 @@ Local BERT classifier in [`models/MiniLM-L12-H384`](models/MiniLM-L12-H384) (`mi
 
 ```bash
 ./scripts/upload-model-to-s3.sh MiniLM-L12-H384
-# → s3://bedrock-models-646821141010/microsoft/MiniLM-L12-H384/  (optional CI fallback)
+# → s3://huggingface-bedrock-models-103714492562/microsoft/MiniLM-L12-H384/  (optional CI fallback)
 ```
 
 ### OpenAI GPT-OSS (marketplace)
@@ -157,7 +157,7 @@ Safeguard variants are dedicated safety / content-moderation models (not general
 
 ```bash
 ./scripts/upload-model-to-s3.sh gpt-oss
-# → s3://bedrock-models-646821141010/openai/gpt-oss-120b/model-manifest.json
+# → s3://huggingface-bedrock-models-103714492562/openai/gpt-oss-120b/model-manifest.json
 ./scripts/upload-model-to-s3.sh gpt-oss-safeguard-20b
 ./scripts/upload-model-to-s3.sh gpt-oss-safeguard-120b
 ```
@@ -177,7 +177,7 @@ Enable DeepSeek access, then:
 
 ```bash
 ./scripts/upload-model-to-s3.sh deepseek
-# → s3://bedrock-models-646821141010/deepseek/deepseek-v3.2/model-manifest.json
+# → s3://huggingface-bedrock-models-103714492562/deepseek/deepseek-v3.2/model-manifest.json
 ```
 
 ### Qwen3 Next 80B A3B (marketplace)
@@ -197,7 +197,7 @@ No geo inference profiles (in-region only).
 
 ```bash
 ./scripts/upload-model-to-s3.sh qwen3-next-80b-a3b
-# → s3://bedrock-models-646821141010/qwen/qwen3-next-80b-a3b/model-manifest.json
+# → s3://huggingface-bedrock-models-103714492562/qwen/qwen3-next-80b-a3b/model-manifest.json
 ```
 
 ### Ministral 3 / Gemma 3 / Qwen3 32B (marketplace)

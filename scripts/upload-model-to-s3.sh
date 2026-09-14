@@ -13,7 +13,7 @@
 #   ./scripts/upload-model-to-s3.sh MiniLM-L12-H384
 #
 # Env overrides:
-#   BUCKET      default s3://bedrock-models-646821141010
+#   BUCKET      default s3://huggingface-bedrock-models-<account-id>
 #   AWS_REGION  default us-east-1
 #   MODEL_ID, MODEL_NAME, US_PROFILE, GLOBAL_PROFILE
 set -euo pipefail
@@ -22,7 +22,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # shellcheck source=aws-env.sh
 source "${ROOT}/scripts/aws-env.sh"
 
-BUCKET="${BUCKET:-s3://bedrock-models-646821141010}"
+BUCKET="${BUCKET:-s3://$(ensure_models_bucket)}"
 REGION="${AWS_REGION:-us-east-1}"
 
 # Catalog: key1|key2|...|display|provider|name|id|aliases|profiles

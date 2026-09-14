@@ -7,7 +7,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # shellcheck source=aws-env.sh
 source "${ROOT}/scripts/aws-env.sh"
 MINILM_SRC="${ROOT}/models/MiniLM-L12-H384"
-MINILM_S3="${MINILM_S3_URI:-s3://bedrock-models-646821141010/microsoft/MiniLM-L12-H384}"
+MINILM_S3="${MINILM_S3_URI:-}"
 REGION="${AWS_REGION:-us-east-1}"
 
 if [[ -f "${MINILM_SRC}/model.safetensors" || -f "${MINILM_SRC}/weights.npz" ]]; then
@@ -19,13 +19,17 @@ if ! command -v aws >/dev/null; then
   exit 1
 fi
 
+if [[ -z "${MINILM_S3}" ]]; then
+  MINILM_S3="s3://$(ensure_models_bucket)/microsoft/MiniLM-L12-H384"
+fi
+
 mkdir -p "${MINILM_SRC}"
 echo "Fetching MiniLM weights from ${MINILM_S3}…"
 if ! aws s3 sync "${MINILM_S3}/" "${MINILM_SRC}/" --region "${REGION}" \
   --exclude "*" --include "model.safetensors" --include "weights.npz" \
   --include "tokenizer.json" --include "config.json"; then
   echo "error: could not fetch MiniLM weights from ${MINILM_S3}" >&2
-  echo "error: use the root-account profile (bitaihang09132026), or run: ./scripts/upload-model-to-s3.sh MiniLM-L12-H384" >&2
+  echo "error: upload weights with: ./scripts/upload-model-to-s3.sh MiniLM-L12-H384" >&2
   exit 1
 fi
 
