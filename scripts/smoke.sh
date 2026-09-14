@@ -40,7 +40,7 @@ if [[ -z "${FUNCTION_URL:-}" ]]; then
   command -v aws >/dev/null || die "set FUNCTION_URL, or install the aws CLI"
   FUNCTION_URL="$(aws lambda get-function-url-config \
     --region "${AWS_REGION}" \
-    --function-name bedrock-inference-mvp \
+    --function-name "${FUNCTION_NAME:-bedrock-inference-mvp}" \
     --query FunctionUrl \
     --output text)"
 fi

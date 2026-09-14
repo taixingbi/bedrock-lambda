@@ -7,3 +7,7 @@ output "function_arn" {
   description = "Inference Lambda ARN"
   value       = aws_lambda_function.inference.arn
 }
+
+output "function_name" {
+  value = aws_lambda_function.inference.function_name
+}

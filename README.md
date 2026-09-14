@@ -7,13 +7,13 @@ Python Lambda with a Function URL that sends prompts to Amazon Bedrock via the b
 1. Root AWS account (profile `bitaihang09132026`) with permission to create Lambda, IAM roles, and call Bedrock. Scripts default to that profile unless `AWS_ACCESS_KEY_ID` or `AWS_PROFILE` is already set.
 2. [Model access enabled](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html) for marketplace models (default: `amazon.nova-lite-v1:0`)
 3. [Terraform](https://developer.hashicorp.com/terraform/install) (>= 1.5) and Python 3.12 for local package/deploy
-4. GitHub Actions assumes the deploy role with `sts:AssumeRoleWithWebIdentity` (no AWS access keys in CI). From the root account run `./scripts/setup-gha-oidc-role.sh` once, then add:
+4. GitHub Actions assumes a deploy role with `sts:AssumeRoleWithWebIdentity`. From the account that owns the role, run `./scripts/setup-gha-oidc-role.sh` once, then add:
 
 | Name | Where | Purpose |
 | --- | --- | --- |
 | `INFERENCE_API_KEY` | Secret | Shared secret clients must send as `x-api-key` |
 
-The workflow assumes `arn:aws:iam::103714492562:role/github-actions-deploy` unless variable `AWS_ROLE_ARN` overrides it.
+Optional overrides when DEV and PROD are different accounts: variables `AWS_ROLE_ARN_DEV` / `AWS_ROLE_ARN_PROD`, secrets `INFERENCE_API_KEY_DEV` / `INFERENCE_API_KEY_PROD`. Until those are set, both environments use `AWS_ROLE_ARN` (default `arn:aws:iam::103714492562:role/github-actions-deploy`) and `INFERENCE_API_KEY`. State keys stay separate either way.
 
 Optional repository variables:
 
@@ -293,15 +293,39 @@ Set `"stream": true` to receive OpenAI SSE (`text/event-stream`) chunks (`chat.c
 
 ## Deploy
 
-Push to `main` or run the **Deploy** workflow manually. Lambda name: `bedrock-inference-mvp` (region defaults to `us-east-1`, root account only). The first Terraform apply deletes the old SAM/CloudFormation stack of the same name if it still exists.
+Environments are directories and state files, not branches. `feature/*` → pull request → `main`. The same commit is what DEV runs, and what PROD runs after approval.
 
-Local commands use profile `bitaihang09132026` (`aws configure --profile bitaihang09132026`). After deploy, get the Function URL:
+```
+feature/* → PR
+              ├── terraform fmt / validate / plan (dev and prod)
+              └── compile the app
+            merge
+              ↓
+            main
+              ├── infra apply DEV
+              ├── app publish DEV
+              ├── DEV validation
+              ├── GitHub Environment `production` approval
+              ├── infra apply PROD
+              └── app publish PROD
+```
+
+Turn on a required reviewer before relying on the gate: GitHub → Settings → Environments → `production` → Required reviewers. Until that rule exists, the production job does not wait.
+
+| Environment | Function | State key |
+| --- | --- | --- |
+| dev | `bedrock-inference-dev` | `environments/dev/terraform.tfstate` |
+| prod | `bedrock-inference-mvp` | `environments/prod/terraform.tfstate` |
+
+PROD keeps the existing function name so the live Lambda is not replaced. Point `AWS_ROLE_ARN_DEV` and `AWS_ROLE_ARN_PROD` at different accounts when you have them; do not add a `dev` or `prod` branch.
+
+Local commands use profile `bitaihang09132026`. After deploy, get a Function URL:
 
 ```bash
 aws lambda get-function-url-config \
   --profile bitaihang09132026 \
   --region us-east-1 \
-  --function-name bedrock-inference-mvp \
+  --function-name bedrock-inference-mvp
   --query FunctionUrl \
   --output text
 ```
@@ -312,13 +336,15 @@ Or in the AWS Console: Lambda → `bedrock-inference-mvp` → **Configuration** 
 
 ```bash
 export API_KEY='your-shared-secret'
-./scripts/tf-deploy.sh
+./scripts/tf.sh apply dev
+./scripts/app-deploy.sh dev
+./scripts/tf.sh plan prod
 ```
 
-Tear down the Lambda in the root account:
+Tear down one environment (the other state's resources stay):
 
 ```bash
-./scripts/tf-destroy.sh
+./scripts/tf.sh destroy dev
 ```
 
 ## Call the API
@@ -329,7 +355,7 @@ Example (`ministral-8b`):
 FUNCTION_URL=$(aws lambda get-function-url-config \
   --profile bitaihang09132026 \
   --region us-east-1 \
-  --function-name bedrock-inference-mvp \
+  --function-name bedrock-inference-mvp
   --query FunctionUrl \
   --output text)
 INFERENCE_API_KEY='1234'

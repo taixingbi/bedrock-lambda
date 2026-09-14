@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+  AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN || 'arn:aws:iam::103714492562:role/github-actions-deploy' }}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Compile app
+        run: python3 -m compileall -q src
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: fmt and validate
+        run: ./scripts/tf-check.sh
+
+  plan:
+    needs: check
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: [dev, prod]
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ matrix.environment == 'prod' && (vars.AWS_ROLE_ARN_PROD || env.AWS_ROLE_ARN) || (vars.AWS_ROLE_ARN_DEV || env.AWS_ROLE_ARN) }}
+          role-session-name: gha-plan-${{ matrix.environment }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Plan
+        env:
+          INFERENCE_API_KEY: ${{ secrets.INFERENCE_API_KEY }}
+          INFERENCE_API_KEY_DEV: ${{ secrets.INFERENCE_API_KEY_DEV }}
+          INFERENCE_API_KEY_PROD: ${{ secrets.INFERENCE_API_KEY_PROD }}
+          MODEL_ID: ${{ vars.MODEL_ID }}
+          MODEL_MAP: ${{ vars.MODEL_MAP }}
+        run: ./scripts/tf.sh plan ${{ matrix.environment }}

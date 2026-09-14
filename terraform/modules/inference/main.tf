@@ -2,10 +2,15 @@ data "aws_caller_identity" "current" {}
 
 locals {
   adapter_layer = "arn:aws:lambda:${var.aws_region}:753240598075:layer:LambdaAdapterLayerX86:28"
+  tags = {
+    Environment = var.environment
+    Service     = "bedrock-gateway"
+  }
 }
 
 resource "aws_iam_role" "inference" {
   name = "${var.function_name}-role"
+  tags = local.tags
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -53,6 +58,7 @@ resource "aws_s3_object" "lambda_zip" {
   key         = var.lambda_s3_key
   source      = var.lambda_zip
   source_hash = filemd5(var.lambda_zip)
+  tags        = local.tags
 }
 
 resource "aws_lambda_function" "inference" {
@@ -68,6 +74,7 @@ resource "aws_lambda_function" "inference" {
   timeout          = 60
   memory_size      = 2048
   layers           = [local.adapter_layer]
+  tags             = local.tags
 
   environment {
     variables = {
@@ -78,6 +85,12 @@ resource "aws_lambda_function" "inference" {
       AWS_LWA_INVOKE_MODE     = "response_stream"
       AWS_LWA_PORT            = "8080"
     }
+  }
+
+  # App pipeline owns code updates (aws lambda update-function-code).
+  # Infra apply still creates the function and manages IAM, URL, and env vars.
+  lifecycle {
+    ignore_changes = [filename, s3_key, s3_object_version, source_code_hash]
   }
 
   depends_on = [aws_iam_role_policy.inference, aws_s3_object.lambda_zip]

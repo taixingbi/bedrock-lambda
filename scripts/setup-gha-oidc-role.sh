@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Create (or reuse) the root-account deploy role.
-# Trust allows the account to sts:AssumeRole and GitHub OIDC.
+# Trust is GitHub OIDC only (sts:AssumeRoleWithWebIdentity).
 # Run once with profile bitaihang09132026. Prints AWS_ROLE_ARN.
 #
 # Env:
@@ -41,11 +41,6 @@ TRUST="$(cat <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": { "AWS": "arn:aws:iam::${ACCOUNT_ID}:user/gha-deploy" },
-      "Action": "sts:AssumeRole"
-    },
     {
       "Effect": "Allow",
       "Principal": { "Federated": "${PROVIDER_ARN}" },
@@ -103,9 +98,7 @@ aws iam put-role-policy \
         "iam:TagRole",
         "iam:UntagRole",
         "s3:*",
-        "logs:*",
-        "cloudformation:DescribeStacks",
-        "cloudformation:DeleteStack"
+        "logs:*"
       ],
       "Resource": "*"
     }
