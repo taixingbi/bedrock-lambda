@@ -1,9 +1,8 @@
 name: Deploy
 
 # One main commit is applied to both environments. Git branches are not environments.
-# DEV applies automatically. PROD waits on the GitHub Environment named production
-# (Settings → Environments → production → Required reviewers). Until that rule
-# exists, the production job does not wait.
+# DEV applies automatically. PROD waits until taixingbi comments "approved" on the
+# issue opened by approve-prod. Comment "denied" to stop the deploy.
 
 on:
   push:
@@ -73,9 +72,23 @@ jobs:
     needs: validate-dev
     environment: production
     runs-on: ubuntu-latest
+    timeout-minutes: 360
+    permissions:
+      issues: write
     steps:
-      - name: Promotion gate
-        run: echo "DEV validated. Continuing to PROD with the same commit ${{ github.sha }}."
+      - name: Wait for production approval
+        uses: trstringer/manual-approval@fa642940caf8412403569b28b2db4a1df08a83a3 # v1.13.1
+        with:
+          secret: ${{ github.token }}
+          approvers: taixingbi
+          minimum-approvals: 1
+          issue-title: "Approve production deploy ${{ github.sha }}"
+          issue-body: |
+            DEV validation passed for `${{ github.sha }}`.
+            Comment `approved` to deploy this commit to production.
+            Comment `denied` to stop.
+          exclude-workflow-initiator-as-approver: false
+          fail-on-denial: true
 
   infra-prod:
     needs: approve-prod

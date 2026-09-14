@@ -310,7 +310,7 @@ feature/* → PR
               └── app publish PROD
 ```
 
-Turn on a required reviewer before relying on the gate: GitHub → Settings → Environments → `production` → Required reviewers. Until that rule exists, the production job does not wait.
+PROD does not start until you comment `approved` on the issue opened by the `approve-prod` job. Comment `denied` to stop. The job waits up to 6 hours.
 
 | Environment | Function | State key |
 | --- | --- | --- |
