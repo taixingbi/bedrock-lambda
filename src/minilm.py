@@ -193,10 +193,25 @@ def _forward(
     return _linear(pooled, weights["classifier.weight"], weights["classifier.bias"])
 
 
+def _head_is_untrained(weights: dict[str, np.ndarray]) -> bool:
+    weight = weights.get("classifier.weight")
+    bias = weights.get("classifier.bias")
+    if weight is None or bias is None:
+        return True
+    return not np.any(weight) and not np.any(bias)
+
+
 class _Session:
     def __init__(self, model_dir: Path) -> None:
         self.config = _load_config(model_dir)
         self.weights = _load_weights(model_dir)
+        if _head_is_untrained(self.weights):
+            raise RuntimeError(
+                "MiniLM classifier head is all zeros in "
+                f"{model_dir} (classifier.weight / classifier.bias). "
+                "The packaged checkpoint has no trained WildGuard head, so it "
+                "cannot classify."
+            )
         tokenizer = Tokenizer.from_file(str(model_dir / "tokenizer.json"))
         tokenizer.no_padding()
         tokenizer.enable_truncation(max_length=MAX_LENGTH)

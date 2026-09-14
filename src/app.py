@@ -193,7 +193,7 @@ def _converse_delta_text(delta: dict[str, Any]) -> str:
     text = delta.get("text")
     if isinstance(text, str) and text:
         return text
-    return _reasoning_text(delta)
+    return ""
 
 
 def _extract_converse_text(converse_response: dict[str, Any]) -> str:
@@ -606,16 +606,27 @@ def _stream_converse(
 
     def deltas() -> Iterator[tuple[str, str | None]]:
         finish_reason: str | None = None
+        saw_text = False
+        reasoning_parts: list[str] = []
         for event in event_stream:
             _raise_stream_event_error(event)
             if "contentBlockDelta" in event:
                 delta = event["contentBlockDelta"].get("delta") or {}
                 text = _converse_delta_text(delta)
                 if text:
+                    saw_text = True
                     yield text, None
+                    continue
+                # Keep reasoning off the answer stream. Use it only if the
+                # model never emits a text block (same fallback as sync).
+                reasoning = _reasoning_text(delta)
+                if reasoning:
+                    reasoning_parts.append(reasoning)
             elif "messageStop" in event:
                 stop_reason = event["messageStop"].get("stopReason")
                 finish_reason = "length" if stop_reason == "max_tokens" else "stop"
+        if not saw_text and reasoning_parts:
+            yield "".join(reasoning_parts), None
         yield "", finish_reason or "stop"
 
     yield from _openai_sse_stream(model, deltas())

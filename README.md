@@ -124,7 +124,7 @@ Enable Meta model access in the Bedrock console. Friendly aliases default to the
 
 ### MiniLM-L12-H384 (in-process classifier)
 
-Local BERT classifier in [`models/MiniLM-L12-H384`](models/MiniLM-L12-H384) (`microsoft/MiniLM-L12-H384-uncased`, WildGuardMix binary head). Not a Bedrock marketplace FM. The Lambda runs it in-process; assistant `content` is JSON `{"label","score","probs","tokens"}` (`unharmful` / `harmful`).
+Local BERT classifier in [`models/MiniLM-L12-H384`](models/MiniLM-L12-H384) (`microsoft/MiniLM-L12-H384-uncased`, WildGuardMix binary head). Not a Bedrock marketplace FM. The Lambda runs it in-process; assistant `content` is JSON `{"label","score","probs","tokens"}` (`unharmful` / `harmful`). The packaged checkpoint's `classifier.weight` and `classifier.bias` are all zeros, so requests return 502 until a trained head is saved into `model.safetensors`.
 
 ```json
 {"model": "minilm-l12-h384", "messages": [{"role": "user", "content": "Hello"}]}
