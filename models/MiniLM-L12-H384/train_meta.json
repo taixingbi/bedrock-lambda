@@ -1,0 +1,7 @@
+{
+  "base": "microsoft/MiniLM-L12-H384-uncased",
+  "n_train": 10800,
+  "n_val": 1200,
+  "source": "wildguardmix_train",
+  "held_out": "P4 freeze + WildGuardTest + XSTest"
+}

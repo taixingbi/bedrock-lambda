@@ -1,0 +1,17 @@
+.aws-sam/
+.terraform/
+terraform/.build/
+*.tfstate
+*.tfstate.*
+__pycache__/
+*.py[cod]
+.venv/
+.venv-minilm/
+.venv-hf/
+venv/
+.env
+*.zip
+tmp.md
+Qwen2.5-*/
+*.safetensors
+models/**/weights.npz

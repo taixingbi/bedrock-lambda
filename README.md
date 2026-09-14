@@ -4,14 +4,14 @@ Python Lambda with a Function URL that sends prompts to Amazon Bedrock via the b
 
 ## Prerequisites
 
-1. AWS account with permission to create Lambda, IAM roles, and call Bedrock
+1. Root AWS account (profile `bitaihang09132026`) with permission to create Lambda, IAM roles, and call Bedrock. Scripts default to that profile unless `AWS_ACCESS_KEY_ID` or `AWS_PROFILE` is already set.
 2. [Model access enabled](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html) for marketplace models (default: `amazon.nova-lite-v1:0`)
 3. [Terraform](https://developer.hashicorp.com/terraform/install) (>= 1.5) and Python 3.12 for local package/deploy
-4. GitHub Actions OIDC (no long-lived AWS keys). From the management account run `./scripts/setup-gha-oidc-role.sh`, then add:
+4. GitHub Actions OIDC (no long-lived AWS keys in CI). From the root account run `./scripts/setup-gha-oidc-role.sh`, then add:
 
 | Name | Where | Purpose |
 | --- | --- | --- |
-| `AWS_ROLE_ARN` | Variable | Management-account role assumed via GitHub OIDC |
+| `AWS_ROLE_ARN` | Variable | Root-account role assumed via GitHub OIDC |
 | `INFERENCE_API_KEY` | Secret | Shared secret clients must send as `x-api-key` |
 
 Optional repository variables:
@@ -22,9 +22,7 @@ Optional repository variables:
 | `MODEL_ID` | Default Bedrock model ID when the request omits `model` (defaults to `amazon.nova-lite-v1:0`) |
 | `MODEL_MAP` | Optional JSON object of request alias → Bedrock ID/ARN (merges with built-in aliases) |
 
-Multi-account org (Terraform emails in `terraform/org/variables.tf`; push creates A–D): see [org/README.md](org/README.md).
-
-The Lambda talks to Bedrock with its **execution role**, not with the GitHub deploy role. Bedrock is managed inference — you do not choose a GPU.
+The Lambda runs in the root account only (no member tenants). It talks to Bedrock with its **execution role**, not with the GitHub deploy role. Bedrock is managed inference — you do not choose a GPU.
 
 ## Models
 
@@ -294,12 +292,13 @@ Set `"stream": true` to receive OpenAI SSE (`text/event-stream`) chunks (`chat.c
 
 ## Deploy
 
-Push to `main` or run the **Deploy** workflow manually. Lambda name: `bedrock-inference-mvp` (region defaults to `us-east-1`). The first Terraform apply deletes the old SAM/CloudFormation stack of the same name if it still exists.
+Push to `main` or run the **Deploy** workflow manually. Lambda name: `bedrock-inference-mvp` (region defaults to `us-east-1`, root account only). The first Terraform apply deletes the old SAM/CloudFormation stack of the same name if it still exists.
 
-After deploy, get the Function URL (include `--region` if `aws configure` has no default):
+Local commands use profile `bitaihang09132026` (`aws configure --profile bitaihang09132026`). After deploy, get the Function URL:
 
 ```bash
 aws lambda get-function-url-config \
+  --profile bitaihang09132026 \
   --region us-east-1 \
   --function-name bedrock-inference-mvp \
   --query FunctionUrl \
@@ -315,7 +314,7 @@ export API_KEY='your-shared-secret'
 ./scripts/tf-deploy.sh
 ```
 
-Tear down Lambdas plus the org OU and member accounts A–D (closes those accounts):
+Tear down the Lambda in the root account:
 
 ```bash
 ./scripts/tf-destroy.sh
@@ -327,6 +326,7 @@ Example (`ministral-8b`):
 
 ```bash
 FUNCTION_URL=$(aws lambda get-function-url-config \
+  --profile bitaihang09132026 \
   --region us-east-1 \
   --function-name bedrock-inference-mvp \
   --query FunctionUrl \
@@ -345,7 +345,7 @@ curl -sS -N -X POST "${FUNCTION_URL}v1/chat/completions" \
   }'
 ```
 
-See [`scripts/smoke.sh`](scripts/smoke.sh) (`ACCOUNT=a|b|c|d ./scripts/smoke.sh ministral-8b`) for a sync+stream smoke test of tenants in OU `bedrock-inference-dev`.
+See [`scripts/smoke.sh`](scripts/smoke.sh) (`./scripts/smoke.sh ministral-8b`) for a sync+stream smoke test against the root-account Function URL.
 
 Amazon Nova Pro (marketplace):
 
