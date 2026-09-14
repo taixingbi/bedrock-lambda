@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Create (or reuse) the GitHub OIDC provider and root-account deploy role.
+# Create (or reuse) the root-account deploy role.
+# Trust allows the account to sts:AssumeRole and GitHub OIDC.
 # Run once with profile bitaihang09132026. Prints AWS_ROLE_ARN.
 #
 # Env:
@@ -40,6 +41,11 @@ TRUST="$(cat <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": { "AWS": "arn:aws:iam::${ACCOUNT_ID}:user/gha-deploy" },
+      "Action": "sts:AssumeRole"
+    },
     {
       "Effect": "Allow",
       "Principal": { "Federated": "${PROVIDER_ARN}" },
@@ -115,9 +121,12 @@ Done.
   Role   ${ROLE_ARN}
   Trust  repo:${REPO}:*
 
-GitHub → Settings → Secrets and variables → Actions → Variables:
+Root cannot sts:AssumeRole. Deploy uses IAM user gha-deploy keys as repository secrets:
+
+  AWS_ACCESS_KEY_ID
+  AWS_SECRET_ACCESS_KEY
+
+Optional variable (defaults to this role):
 
   AWS_ROLE_ARN=${ROLE_ARN}
-
-Remove repository secrets AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY if they are still set.
 EOF
