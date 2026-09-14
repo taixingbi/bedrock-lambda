@@ -310,7 +310,7 @@ feature/* → PR
               └── app publish PROD
 ```
 
-PROD does not start until you comment `approved` on the issue opened by the `approve-prod` job. Comment `denied` to stop. The job waits up to 6 hours.
+PROD waits on the GitHub Environment `production`. After DEV validation, open the Actions run and choose **Review deployments → Approve and deploy**. That button appears only after a required reviewer is set: Settings → Environments → `production` → Required reviewers. Turn off **Allow administrators to bypass**, or the repo owner skips the review. Leave **Prevent self-review** off so the person who pushed can still approve.
 
 | Environment | Function | State key |
 | --- | --- | --- |

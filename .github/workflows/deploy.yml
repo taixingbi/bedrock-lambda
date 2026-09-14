@@ -1,8 +1,8 @@
 name: Deploy
 
 # One main commit is applied to both environments. Git branches are not environments.
-# DEV applies automatically. PROD waits until taixingbi comments "approved" on the
-# issue opened by approve-prod. Comment "denied" to stop the deploy.
+# DEV applies automatically. PROD waits on the GitHub Environment named production
+# until a required reviewer clicks Review deployments → Approve and deploy.
 
 on:
   push:
@@ -68,30 +68,9 @@ jobs:
           INFERENCE_API_KEY: ${{ secrets.INFERENCE_API_KEY_DEV || secrets.INFERENCE_API_KEY }}
         run: ./scripts/validate-env.sh dev
 
-  approve-prod:
+  infra-prod:
     needs: validate-dev
     environment: production
-    runs-on: ubuntu-latest
-    timeout-minutes: 360
-    permissions:
-      issues: write
-    steps:
-      - name: Wait for production approval
-        uses: trstringer/manual-approval@fa642940caf8412403569b28b2db4a1df08a83a3 # v1.13.1
-        with:
-          secret: ${{ github.token }}
-          approvers: taixingbi
-          minimum-approvals: 1
-          issue-title: "Approve production deploy ${{ github.sha }}"
-          issue-body: |
-            DEV validation passed for `${{ github.sha }}`.
-            Comment `approved` to deploy this commit to production.
-            Comment `denied` to stop.
-          exclude-workflow-initiator-as-approver: false
-          fail-on-denial: true
-
-  infra-prod:
-    needs: approve-prod
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
