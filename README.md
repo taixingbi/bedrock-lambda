@@ -315,9 +315,9 @@ Turn on a required reviewer before relying on the gate: GitHub → Settings → 
 | Environment | Function | State key |
 | --- | --- | --- |
 | dev | `bedrock-inference-dev` | `environments/dev/terraform.tfstate` |
-| prod | `bedrock-inference-mvp` | `environments/prod/terraform.tfstate` |
+| prod | `bedrock-inference-prod` | `environments/prod/terraform.tfstate` |
 
-PROD keeps the existing function name so the live Lambda is not replaced. Point `AWS_ROLE_ARN_DEV` and `AWS_ROLE_ARN_PROD` at different accounts when you have them; do not add a `dev` or `prod` branch.
+Renaming a function replaces that Lambda and its Function URL. Point `AWS_ROLE_ARN_DEV` and `AWS_ROLE_ARN_PROD` at different accounts when you have them; do not add a `dev` or `prod` branch.
 
 Local commands use profile `bitaihang09132026`. After deploy, get a Function URL:
 
@@ -325,12 +325,12 @@ Local commands use profile `bitaihang09132026`. After deploy, get a Function URL
 aws lambda get-function-url-config \
   --profile bitaihang09132026 \
   --region us-east-1 \
-  --function-name bedrock-inference-mvp
+  --function-name bedrock-inference-prod
   --query FunctionUrl \
   --output text
 ```
 
-Or in the AWS Console: Lambda → `bedrock-inference-mvp` → **Configuration** → **Function URL**.
+Or in the AWS Console: Lambda → `bedrock-inference-prod` → **Configuration** → **Function URL**.
 
 ### Manual deploy
 
@@ -355,7 +355,7 @@ Example (`ministral-8b`):
 FUNCTION_URL=$(aws lambda get-function-url-config \
   --profile bitaihang09132026 \
   --region us-east-1 \
-  --function-name bedrock-inference-mvp
+  --function-name bedrock-inference-prod
   --query FunctionUrl \
   --output text)
 INFERENCE_API_KEY='1234'
