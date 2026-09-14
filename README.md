@@ -7,12 +7,10 @@ Python Lambda with a Function URL that sends prompts to Amazon Bedrock via the b
 1. Root AWS account (profile `bitaihang09132026`) with permission to create Lambda, IAM roles, and call Bedrock. Scripts default to that profile unless `AWS_ACCESS_KEY_ID` or `AWS_PROFILE` is already set.
 2. [Model access enabled](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html) for marketplace models (default: `amazon.nova-lite-v1:0`)
 3. [Terraform](https://developer.hashicorp.com/terraform/install) (>= 1.5) and Python 3.12 for local package/deploy
-4. GitHub Actions calls `sts:AssumeRole` as IAM user `gha-deploy` (the root user cannot assume roles). From the root account run `./scripts/setup-gha-oidc-role.sh`, then add that user's keys as secrets:
+4. GitHub Actions assumes the deploy role with `sts:AssumeRoleWithWebIdentity` (no AWS access keys in CI). From the root account run `./scripts/setup-gha-oidc-role.sh` once, then add:
 
 | Name | Where | Purpose |
 | --- | --- | --- |
-| `AWS_ACCESS_KEY_ID` | Secret | IAM user `gha-deploy`; calls `sts:AssumeRole` |
-| `AWS_SECRET_ACCESS_KEY` | Secret | Pairs with the access key above |
 | `INFERENCE_API_KEY` | Secret | Shared secret clients must send as `x-api-key` |
 
 The workflow assumes `arn:aws:iam::103714492562:role/github-actions-deploy` unless variable `AWS_ROLE_ARN` overrides it.

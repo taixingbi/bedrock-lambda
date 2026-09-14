@@ -1,15 +1,9 @@
 name: Terraform deploy
 description: Package and terraform apply the Bedrock inference Lambda in the root account
 inputs:
-  aws-access-key-id:
-    required: true
-    description: Access key for IAM user gha-deploy, used to call sts:AssumeRole
-  aws-secret-access-key:
-    required: true
-    description: Secret key used to call sts:AssumeRole
   role-to-assume:
     required: true
-    description: Role assumed with STS AssumeRole
+    description: Role assumed with STS AssumeRoleWithWebIdentity
   role-session-name:
     required: false
     default: gha-deploy
@@ -20,16 +14,10 @@ runs:
       shell: bash
       env:
         DEPLOY_ROLE: ${{ inputs.role-to-assume }}
-        AWS_ACCESS_KEY_ID: ${{ inputs.aws-access-key-id }}
-        AWS_SECRET_ACCESS_KEY: ${{ inputs.aws-secret-access-key }}
       run: |
         missing=0
-        if [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
-          echo "::error::Set repository secrets AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY for IAM user gha-deploy."
-          missing=1
-        fi
         if [ -z "$DEPLOY_ROLE" ]; then
-          echo "::error::Missing role ARN for sts:AssumeRole."
+          echo "::error::Missing role ARN for sts:AssumeRoleWithWebIdentity."
           missing=1
         fi
         if [ -z "$API_KEY" ]; then
@@ -51,8 +39,6 @@ runs:
     - name: Assume deploy role (STS)
       uses: aws-actions/configure-aws-credentials@v6
       with:
-        aws-access-key-id: ${{ inputs.aws-access-key-id }}
-        aws-secret-access-key: ${{ inputs.aws-secret-access-key }}
         role-to-assume: ${{ inputs.role-to-assume }}
         role-session-name: ${{ inputs.role-session-name }}
         aws-region: ${{ env.AWS_REGION }}

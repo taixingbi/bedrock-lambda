@@ -121,10 +121,7 @@ Done.
   Role   ${ROLE_ARN}
   Trust  repo:${REPO}:*
 
-Root cannot sts:AssumeRole. Deploy uses IAM user gha-deploy keys as repository secrets:
-
-  AWS_ACCESS_KEY_ID
-  AWS_SECRET_ACCESS_KEY
+Deploy calls sts:AssumeRoleWithWebIdentity on this role. No AWS access-key secrets.
 
 Optional variable (defaults to this role):
 
