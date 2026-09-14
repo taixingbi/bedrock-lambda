@@ -1,0 +1,167 @@
+[
+  {
+    "alias": "nova-lite",
+    "aliases": ["amazon.nova-lite-v1:0"],
+    "id": "amazon.nova-lite-v1:0",
+    "kind": "bedrock"
+  },
+  {
+    "alias": "nova-micro",
+    "aliases": ["amazon.nova-micro-v1:0"],
+    "id": "amazon.nova-micro-v1:0",
+    "kind": "bedrock",
+    "enable": true
+  },
+  {
+    "alias": "us.amazon.nova-micro-v1:0",
+    "id": "us.amazon.nova-micro-v1:0",
+    "kind": "bedrock"
+  },
+  {
+    "alias": "nova-pro",
+    "aliases": ["amazon.nova-pro-v1:0"],
+    "id": "amazon.nova-pro-v1:0",
+    "kind": "bedrock",
+    "enable": true
+  },
+  {
+    "alias": "us.amazon.nova-pro-v1:0",
+    "id": "us.amazon.nova-pro-v1:0",
+    "kind": "bedrock"
+  },
+  {
+    "alias": "llama",
+    "aliases": ["llama3.3", "llama-3.3-70b", "us.meta.llama3-3-70b-instruct-v1:0"],
+    "id": "us.meta.llama3-3-70b-instruct-v1:0",
+    "kind": "bedrock",
+    "enable": true
+  },
+  {
+    "alias": "meta.llama3-3-70b-instruct-v1:0",
+    "id": "meta.llama3-3-70b-instruct-v1:0",
+    "kind": "bedrock"
+  },
+  {
+    "alias": "llama4",
+    "aliases": ["llama4-maverick", "llama-4-maverick", "us.meta.llama4-maverick-17b-instruct-v1:0"],
+    "id": "us.meta.llama4-maverick-17b-instruct-v1:0",
+    "kind": "bedrock"
+  },
+  {
+    "alias": "meta.llama4-maverick-17b-instruct-v1:0",
+    "id": "meta.llama4-maverick-17b-instruct-v1:0",
+    "kind": "bedrock"
+  },
+  {
+    "alias": "llama4-scout",
+    "aliases": ["llama-4-scout", "us.meta.llama4-scout-17b-instruct-v1:0"],
+    "id": "us.meta.llama4-scout-17b-instruct-v1:0",
+    "kind": "bedrock"
+  },
+  {
+    "alias": "meta.llama4-scout-17b-instruct-v1:0",
+    "id": "meta.llama4-scout-17b-instruct-v1:0",
+    "kind": "bedrock"
+  },
+  {
+    "alias": "gpt-oss",
+    "aliases": ["gpt-oss-120b", "openai.gpt-oss-120b-1:0"],
+    "id": "openai.gpt-oss-120b-1:0",
+    "kind": "bedrock",
+    "enable": true
+  },
+  {
+    "alias": "gpt-oss-20b",
+    "aliases": ["openai.gpt-oss-20b-1:0"],
+    "id": "openai.gpt-oss-20b-1:0",
+    "kind": "bedrock"
+  },
+  {
+    "alias": "gpt-oss-safeguard-20b",
+    "aliases": ["openai.gpt-oss-safeguard-20b"],
+    "id": "openai.gpt-oss-safeguard-20b",
+    "kind": "bedrock",
+    "enable": true
+  },
+  {
+    "alias": "gpt-oss-safeguard-120b",
+    "aliases": ["gpt-oss-safeguard", "openai.gpt-oss-safeguard-120b"],
+    "id": "openai.gpt-oss-safeguard-120b",
+    "kind": "bedrock",
+    "enable": true
+  },
+  {
+    "alias": "deepseek",
+    "aliases": ["deepseek-v3.2", "deepseek.v3.2"],
+    "id": "deepseek.v3.2",
+    "kind": "bedrock",
+    "enable": true
+  },
+  {
+    "alias": "deepseek-r1",
+    "aliases": ["us.deepseek.r1-v1:0"],
+    "id": "us.deepseek.r1-v1:0",
+    "kind": "bedrock"
+  },
+  {
+    "alias": "deepseek.r1-v1:0",
+    "id": "deepseek.r1-v1:0",
+    "kind": "bedrock"
+  },
+  {
+    "alias": "qwen3-next-80b-a3b",
+    "aliases": ["qwen.qwen3-next-80b-a3b", "Qwen/Qwen3-Next-80B-A3B-Instruct"],
+    "id": "qwen.qwen3-next-80b-a3b",
+    "kind": "bedrock",
+    "enable": true
+  },
+  {
+    "alias": "ministral-3b",
+    "aliases": ["ministral-3-3b", "mistral.ministral-3-3b-instruct"],
+    "id": "mistral.ministral-3-3b-instruct",
+    "kind": "bedrock"
+  },
+  {
+    "alias": "ministral-8b",
+    "aliases": ["ministral-3-8b", "mistral.ministral-3-8b-instruct"],
+    "id": "mistral.ministral-3-8b-instruct",
+    "kind": "bedrock"
+  },
+  {
+    "alias": "ministral-14b",
+    "aliases": ["ministral-3-14b", "mistral.ministral-3-14b-instruct"],
+    "id": "mistral.ministral-3-14b-instruct",
+    "kind": "bedrock"
+  },
+  {
+    "alias": "gemma-3-4b",
+    "aliases": ["gemma-3-4b-it", "google.gemma-3-4b-it"],
+    "id": "google.gemma-3-4b-it",
+    "kind": "bedrock"
+  },
+  {
+    "alias": "gemma-3-12b",
+    "aliases": ["gemma-3-12b-it", "google.gemma-3-12b-it"],
+    "id": "google.gemma-3-12b-it",
+    "kind": "bedrock"
+  },
+  {
+    "alias": "gemma-3-27b",
+    "aliases": ["gemma-3-27b-it", "google.gemma-3-27b-it"],
+    "id": "google.gemma-3-27b-it",
+    "kind": "bedrock"
+  },
+  {
+    "alias": "qwen3-32b",
+    "aliases": ["qwen.qwen3-32b-v1:0", "Qwen/Qwen3-32B"],
+    "id": "qwen.qwen3-32b-v1:0",
+    "kind": "bedrock"
+  },
+  {
+    "alias": "minilm-l12-h384",
+    "aliases": ["MiniLM-L12-H384", "microsoft/MiniLM-L12-H384-uncased"],
+    "id": "minilm-l12-h384",
+    "kind": "minilm",
+    "enable": true
+  }
+]

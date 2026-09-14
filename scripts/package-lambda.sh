@@ -15,7 +15,8 @@ MINILM_SRC="${ROOT}/models/MiniLM-L12-H384"
 [[ -f "${MINILM_SRC}/model.safetensors" || -f "${MINILM_SRC}/weights.npz" ]] \
   || { echo "error: missing MiniLM weights in ${MINILM_SRC}" >&2; exit 1; }
 
-cp "${ROOT}/src/app.py" "${ROOT}/src/minilm.py" "${ROOT}/src/requirements.txt" "${ROOT}/src/run.sh" "${STAGE}/"
+cp "${ROOT}/src/app.py" "${ROOT}/src/minilm.py" "${ROOT}/src/requirements.txt" "${ROOT}/src/run.sh" \
+  "${ROOT}/models/models.json" "${STAGE}/"
 chmod +x "${STAGE}/run.sh"
 # Lambda is python3.12 x86_64. A host pip install on macOS ARM pulls the wrong
 # pydantic-core wheel and the function exits with Runtime.ExitError.

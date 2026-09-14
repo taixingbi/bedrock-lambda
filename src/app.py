@@ -4,6 +4,7 @@ import os
 import time
 import uuid
 from collections.abc import Iterator
+from pathlib import Path
 from typing import Any, NamedTuple
 
 import boto3
@@ -45,138 +46,42 @@ _STREAM_ERROR_KEYS = (
 )
 
 
-def _alias_entries(*names: str, to: str) -> dict[str, str]:
-    return {name: to for name in names}
+def _catalog_path() -> Path:
+    here = Path(__file__).resolve().parent
+    for path in (here / "models.json", here.parent / "models" / "models.json"):
+        if path.is_file():
+            return path
+    raise RuntimeError("models.json not found next to app.py or in models/")
 
 
-# Friendly request names → Bedrock model ID / imported-model ARN.
-_BUILTIN_MODEL_ALIASES: dict[str, str] = {
-    **_alias_entries("nova-lite", "amazon.nova-lite-v1:0", to="amazon.nova-lite-v1:0"),
-    **_alias_entries("nova-micro", "amazon.nova-micro-v1:0", to="amazon.nova-micro-v1:0"),
-    **_alias_entries("us.amazon.nova-micro-v1:0", to="us.amazon.nova-micro-v1:0"),
-    **_alias_entries("nova-pro", "amazon.nova-pro-v1:0", to="amazon.nova-pro-v1:0"),
-    **_alias_entries("us.amazon.nova-pro-v1:0", to="us.amazon.nova-pro-v1:0"),
-    # Meta Llama — default to US geo inference profiles (on-demand).
-    **_alias_entries(
-        "llama",
-        "llama3.3",
-        "llama-3.3-70b",
-        "us.meta.llama3-3-70b-instruct-v1:0",
-        to="us.meta.llama3-3-70b-instruct-v1:0",
-    ),
-    **_alias_entries(
-        "meta.llama3-3-70b-instruct-v1:0",
-        to="meta.llama3-3-70b-instruct-v1:0",
-    ),
-    **_alias_entries(
-        "llama4",
-        "llama4-maverick",
-        "llama-4-maverick",
-        "us.meta.llama4-maverick-17b-instruct-v1:0",
-        to="us.meta.llama4-maverick-17b-instruct-v1:0",
-    ),
-    **_alias_entries(
-        "meta.llama4-maverick-17b-instruct-v1:0",
-        to="meta.llama4-maverick-17b-instruct-v1:0",
-    ),
-    **_alias_entries(
-        "llama4-scout",
-        "llama-4-scout",
-        "us.meta.llama4-scout-17b-instruct-v1:0",
-        to="us.meta.llama4-scout-17b-instruct-v1:0",
-    ),
-    **_alias_entries(
-        "meta.llama4-scout-17b-instruct-v1:0",
-        to="meta.llama4-scout-17b-instruct-v1:0",
-    ),
-    # OpenAI GPT-OSS (Bedrock-hosted open weights).
-    **_alias_entries(
-        "gpt-oss",
-        "gpt-oss-120b",
-        "openai.gpt-oss-120b-1:0",
-        to="openai.gpt-oss-120b-1:0",
-    ),
-    **_alias_entries("gpt-oss-20b", "openai.gpt-oss-20b-1:0", to="openai.gpt-oss-20b-1:0"),
-    # OpenAI GPT-OSS Safeguard (safety / content moderation).
-    **_alias_entries(
-        "gpt-oss-safeguard-20b",
-        "openai.gpt-oss-safeguard-20b",
-        to="openai.gpt-oss-safeguard-20b",
-    ),
-    **_alias_entries(
-        "gpt-oss-safeguard",
-        "gpt-oss-safeguard-120b",
-        "openai.gpt-oss-safeguard-120b",
-        to="openai.gpt-oss-safeguard-120b",
-    ),
-    # DeepSeek (marketplace).
-    **_alias_entries("deepseek", "deepseek-v3.2", "deepseek.v3.2", to="deepseek.v3.2"),
-    **_alias_entries(
-        "deepseek-r1",
-        "us.deepseek.r1-v1:0",
-        to="us.deepseek.r1-v1:0",
-    ),
-    **_alias_entries("deepseek.r1-v1:0", to="deepseek.r1-v1:0"),
-    # Qwen3 Next 80B A3B (marketplace).
-    **_alias_entries(
-        "qwen3-next-80b-a3b",
-        "qwen.qwen3-next-80b-a3b",
-        "Qwen/Qwen3-Next-80B-A3B-Instruct",
-        to="qwen.qwen3-next-80b-a3b",
-    ),
-    # Ministral 3 (marketplace).
-    **_alias_entries(
-        "ministral-3b",
-        "ministral-3-3b",
-        "mistral.ministral-3-3b-instruct",
-        to="mistral.ministral-3-3b-instruct",
-    ),
-    **_alias_entries(
-        "ministral-8b",
-        "ministral-3-8b",
-        "mistral.ministral-3-8b-instruct",
-        to="mistral.ministral-3-8b-instruct",
-    ),
-    **_alias_entries(
-        "ministral-14b",
-        "ministral-3-14b",
-        "mistral.ministral-3-14b-instruct",
-        to="mistral.ministral-3-14b-instruct",
-    ),
-    # Gemma 3 IT (marketplace).
-    **_alias_entries(
-        "gemma-3-4b",
-        "gemma-3-4b-it",
-        "google.gemma-3-4b-it",
-        to="google.gemma-3-4b-it",
-    ),
-    **_alias_entries(
-        "gemma-3-12b",
-        "gemma-3-12b-it",
-        "google.gemma-3-12b-it",
-        to="google.gemma-3-12b-it",
-    ),
-    **_alias_entries(
-        "gemma-3-27b",
-        "gemma-3-27b-it",
-        "google.gemma-3-27b-it",
-        to="google.gemma-3-27b-it",
-    ),
-    # Qwen3 32B dense (marketplace).
-    **_alias_entries(
-        "qwen3-32b",
-        "qwen.qwen3-32b-v1:0",
-        "Qwen/Qwen3-32B",
-        to="qwen.qwen3-32b-v1:0",
-    ),
-    # MiniLM-L12-H384 (in-process BERT classifier).
-    **_alias_entries(
-        "minilm-l12-h384",
-        "MiniLM-L12-H384",
-        "microsoft/MiniLM-L12-H384-uncased",
-        to=MINILM_ID,
-    ),
-}
+def _load_catalog() -> list[dict[str, Any]]:
+    path = _catalog_path()
+    try:
+        catalog = json.loads(path.read_text())
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(f"models.json must be valid JSON: {exc}") from exc
+    if not isinstance(catalog, list):
+        raise RuntimeError("models.json must be a list of model objects")
+    return catalog
+
+
+def _builtin_aliases(catalog: list[dict[str, Any]]) -> dict[str, str]:
+    mapping: dict[str, str] = {}
+    for index, model in enumerate(catalog):
+        if not isinstance(model, dict):
+            raise RuntimeError(f"models.json[{index}] must be an object")
+        alias = model.get("alias")
+        target = model.get("id")
+        if not isinstance(alias, str) or not alias or not isinstance(target, str) or not target:
+            raise RuntimeError(f"models.json[{index}] needs string alias and id")
+        names = [alias, *model.get("aliases", [])]
+        for name in names:
+            if not isinstance(name, str) or not name:
+                raise RuntimeError(f"models.json[{index}] aliases must be strings")
+            if name in mapping and mapping[name] != target:
+                raise RuntimeError(f"models.json alias {name!r} maps to two ids")
+            mapping[name] = target
+    return mapping
 
 
 def _is_imported_model(model_id: str) -> bool:
@@ -188,7 +93,7 @@ def _is_minilm(model_id: str) -> bool:
 
 
 def _load_model_map() -> dict[str, str]:
-    mapping = dict(_BUILTIN_MODEL_ALIASES)
+    mapping = _builtin_aliases(_load_catalog())
     mapping[DEFAULT_MODEL_ID] = DEFAULT_MODEL_ID
 
     raw = os.environ.get("MODEL_MAP", "").strip()

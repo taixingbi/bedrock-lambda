@@ -15,26 +15,12 @@ source "${ROOT}/scripts/aws-env.sh"
 
 die() { echo "error: $*" >&2; exit 1; }
 
-MODELS=(
-  qwen3-next-80b-a3b
-  nova-pro
-  nova-micro
-  llama
-  llama4
-  llama4-maverick
-  minilm-l12-h384
-  gpt-oss
-  gpt-oss-safeguard-20b
-  gpt-oss-safeguard-120b
-  deepseek
-  ministral-3b
-  ministral-8b
-  ministral-14b
-  gemma-3-4b
-  gemma-3-12b
-  gemma-3-27b
-  qwen3-32b
-)
+# Default set is models.json entries with "enable": true, in file order.
+MODELS=()
+while IFS= read -r model; do
+  [[ -n "${model}" ]] && MODELS+=("${model}")
+done < <(jq -r '.[] | select(.enable == true) | .alias' "${ROOT}/models/models.json")
+((${#MODELS[@]} > 0)) || die "models.json has no enabled models"
 
 if [[ -z "${FUNCTION_URL:-}" ]]; then
   command -v aws >/dev/null || die "set FUNCTION_URL, or install the aws CLI"

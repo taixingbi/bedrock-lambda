@@ -27,7 +27,7 @@ The Lambda runs in the root account only (no member tenants). It talks to Bedroc
 
 ## Models
 
-The request `model` field selects which Bedrock backend to call. Built-in aliases:
+The request `model` field selects which Bedrock backend to call. Add a model in [`models/models.json`](models/models.json) (`alias`, `id`, optional `aliases`). Set `"enable": true` to include it in `./smoke.sh` when no names are passed. Built-in aliases:
 
 | Request `model` | Bedrock ID | API |
 | --- | --- | --- |
@@ -68,6 +68,8 @@ Recommended open models (us-east-1, Bedrock Runtime):
 | Llama 4 Maverick | 17B active (400B MoE) | `llama4` / `llama4-maverick` | `us.meta.llama4-maverick-17b-instruct-v1:0` | ✅ | ✅ | ⭐⭐⭐⭐ |
 | Gemma 3 27B | 27B | `gemma-3-27b` | `google.gemma-3-27b-it` | ✅ | ✅ | ⭐⭐⭐ |
 | Qwen3 32B | 32B | `qwen3-32b` | `qwen.qwen3-32b-v1:0` | ✅ | ✅ | ⭐⭐⭐⭐⭐ |
+
+`./smoke.sh` with no model name hits every [`models/models.json`](models/models.json) entry with `"enable": true` (sync + stream), in file order. Pass names to smoke only those: `./smoke.sh dev ministral-8b qwen3-32b`.
 
 Override or add aliases with the `MODEL_MAP` env / repo variable, e.g.:
 
