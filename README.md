@@ -374,7 +374,14 @@ curl -sS -N -X POST "${FUNCTION_URL}v1/chat/completions" \
   }'
 ```
 
-See [`smoke.sh`](smoke.sh) (`./smoke.sh dev ministral-8b`, or `./smoke.sh prod`) for a sync+stream smoke test against that environment's Function URL.
+See [`smoke.sh`](smoke.sh) for a sync+stream smoke test against that environment's Function URL:
+
+```bash
+./smoke.sh dev ministral-8b
+./smoke.sh prod
+# No AWS profile needed when FUNCTION_URL is set (dev URL below):
+FUNCTION_URL='https://gwjg7secnplcnrbdxrb52ijbge0dwwnu.lambda-url.us-east-1.on.aws/' bash smoke.sh
+```
 
 Amazon Nova Pro (marketplace):
 

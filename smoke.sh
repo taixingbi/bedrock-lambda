@@ -1,19 +1,21 @@
 #!/usr/bin/env bash
-# Smoke-test a deployed environment. Uses profile bitaihang09132026 unless AWS_PROFILE is already set.
+# Smoke-test a deployed environment.
 #
 #   ./smoke.sh dev ministral-8b
 #   ./smoke.sh prod
 #   FUNCTION_URL='https://..../' INFERENCE_API_KEY='1234' ./smoke.sh llama4
 #
 # Omit the model name to hit every marketplace alias (sync + stream).
+# Looks up the Function URL with the AWS CLI unless FUNCTION_URL is set.
+# Defaults to profile bitaihang09132026 only when that profile exists.
 set -euo pipefail
 
 cd "$(dirname "$0")"
 ROOT="$(pwd)"
 # shellcheck source=scripts/env-name.sh
 source "${ROOT}/scripts/env-name.sh"
-export AWS_PROFILE="${AWS_PROFILE:-bitaihang09132026}"
-export AWS_REGION="${AWS_REGION:-us-east-1}"
+# shellcheck source=scripts/aws-env.sh
+source "${ROOT}/scripts/aws-env.sh"
 export INFERENCE_API_KEY="${INFERENCE_API_KEY:-${API_KEY:-1234}}"
 
 ENV="${1:-dev}"

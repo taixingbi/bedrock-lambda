@@ -24,11 +24,13 @@ done < <(jq -r '.[] | select(.enable == true) | .alias' "${ROOT}/models/models.j
 
 if [[ -z "${FUNCTION_URL:-}" ]]; then
   command -v aws >/dev/null || die "set FUNCTION_URL, or install the aws CLI"
-  FUNCTION_URL="$(aws lambda get-function-url-config \
+  if ! FUNCTION_URL="$(aws lambda get-function-url-config \
     --region "${AWS_REGION}" \
     --function-name "${FUNCTION_NAME:-bedrock-inference-prod}" \
     --query FunctionUrl \
-    --output text)"
+    --output text 2>/dev/null)"; then
+    die "could not look up Function URL (missing AWS profile/creds). Set FUNCTION_URL, e.g. FUNCTION_URL='https://….lambda-url.us-east-1.on.aws/' ./smoke.sh"
+  fi
 fi
 
 FUNCTION_URL="${FUNCTION_URL%/}/"

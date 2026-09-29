@@ -1,7 +1,16 @@
 #!/usr/bin/env bash
 # Local AWS CLI profile. Do not override OIDC or explicit keys (GitHub Actions).
+# Prefer bitaihang09132026 when that profile exists; otherwise leave the default
+# credential chain alone (caller must set AWS_PROFILE or FUNCTION_URL).
+_aws_profile_exists() {
+  local name="$1"
+  aws configure list-profiles 2>/dev/null | grep -Fxq "${name}"
+}
+
 if [[ -z "${AWS_PROFILE:-}" && -z "${AWS_ACCESS_KEY_ID:-}" && -z "${AWS_WEB_IDENTITY_TOKEN_FILE:-}" ]]; then
-  export AWS_PROFILE=bitaihang09132026
+  if _aws_profile_exists bitaihang09132026; then
+    export AWS_PROFILE=bitaihang09132026
+  fi
 fi
 export AWS_REGION="${AWS_REGION:-us-east-1}"
 export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-${AWS_REGION}}"
