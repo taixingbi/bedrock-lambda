@@ -380,7 +380,7 @@ See [`smoke.sh`](smoke.sh) for a sync+stream smoke test against that environment
 ./smoke.sh dev ministral-8b
 ./smoke.sh prod
 # No AWS profile needed when FUNCTION_URL is set (dev URL below):
-FUNCTION_URL='https://gwjg7secnplcnrbdxrb52ijbge0dwwnu.lambda-url.us-east-1.on.aws/' bash smoke.sh
+FUNCTION_URL='https://iesd7g4dvnfnaun7s3hpvzgqo40hyjlp.lambda-url.us-east-1.on.aws/' bash smoke.sh
 ```
 
 Amazon Nova Pro (marketplace):
