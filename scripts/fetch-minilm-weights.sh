@@ -8,7 +8,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${ROOT}/scripts/aws-env.sh"
 MINILM_SRC="${ROOT}/models/MiniLM-L12-H384"
 MINILM_S3="${MINILM_S3_URI:-}"
-REGION="${AWS_REGION:-us-east-2}"
+REGION="${AWS_REGION:-us-east-1}"
 
 if [[ -f "${MINILM_SRC}/model.safetensors" || -f "${MINILM_SRC}/weights.npz" ]]; then
   exit 0

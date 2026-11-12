@@ -12,7 +12,7 @@ if [[ -z "${AWS_PROFILE:-}" && -z "${AWS_ACCESS_KEY_ID:-}" && -z "${AWS_WEB_IDEN
     export AWS_PROFILE=bitaihang09132026
   fi
 fi
-export AWS_REGION="${AWS_REGION:-us-east-2}"
+export AWS_REGION="${AWS_REGION:-us-east-1}"
 export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-${AWS_REGION}}"
 export FUNCTION_NAME="${FUNCTION_NAME:-bedrock-inference}"
 API_KEY="${API_KEY:-${INFERENCE_API_KEY:-}}"
@@ -32,7 +32,7 @@ models_bucket() {
 ensure_models_bucket() {
   local name region
   name="$(models_bucket)"
-  region="${AWS_REGION:-us-east-2}"
+  region="${AWS_REGION:-us-east-1}"
   # head-bucket prints JSON on stdout in newer AWS CLI; callers capture this function.
   if aws s3api head-bucket --bucket "${name}" >/dev/null 2>&1; then
     printf '%s' "${name}"

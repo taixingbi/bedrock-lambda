@@ -22,8 +22,20 @@ case "${CMD}" in
 esac
 tf_prepare
 
+# No key given: keep the one the deployed Lambda already uses.
 if [[ "${CMD}" == "apply" && -z "${API_KEY}" ]]; then
-  echo "error: API_KEY or INFERENCE_API_KEY is required" >&2
+  API_KEY="$(aws lambda get-function-configuration \
+    --region "${REGION}" \
+    --function-name "${FUNCTION_NAME}" \
+    --query 'Environment.Variables.API_KEY' \
+    --output text 2>/dev/null || true)"
+  [[ "${API_KEY}" == "None" ]] && API_KEY=""
+  if [[ -n "${API_KEY}" ]]; then
+    echo "Reusing the API key already set on ${FUNCTION_NAME}."
+  fi
+fi
+if [[ "${CMD}" == "apply" && -z "${API_KEY}" ]]; then
+  echo "error: set API_KEY or INFERENCE_API_KEY (no existing ${FUNCTION_NAME} to reuse a key from)" >&2
   exit 1
 fi
 [[ -n "${API_KEY}" ]] || API_KEY="1234"

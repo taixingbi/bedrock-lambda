@@ -8,7 +8,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # shellcheck source=aws-env.sh
 source "${ROOT}/scripts/aws-env.sh"
 
-REGION="${AWS_REGION:-us-east-2}"
+REGION="${AWS_REGION:-us-east-1}"
 
 die() { echo "error: $*" >&2; exit 1; }
 

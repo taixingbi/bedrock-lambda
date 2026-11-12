@@ -14,7 +14,7 @@
 #
 # Env overrides:
 #   BUCKET      default s3://huggingface-bedrock-models-<account-id>
-#   AWS_REGION  default us-east-2
+#   AWS_REGION  default us-east-1
 #   MODEL_ID, MODEL_NAME, US_PROFILE, GLOBAL_PROFILE
 set -euo pipefail
 
@@ -23,7 +23,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "${ROOT}/scripts/aws-env.sh"
 
 BUCKET="${BUCKET:-s3://$(ensure_models_bucket)}"
-REGION="${AWS_REGION:-us-east-2}"
+REGION="${AWS_REGION:-us-east-1}"
 
 # Catalog: key1|key2|...|display|provider|name|id|aliases|profiles
 # profiles: none | us | us+global  (last 6 fields are fixed; earlier fields are lookup keys)

@@ -19,7 +19,7 @@ Optional repository variables:
 
 | Variable | Purpose |
 | --- | --- |
-| `AWS_REGION` | Region for deploy and Bedrock (defaults to `us-east-2`; account 767579108272 only allows S3 and Lambda there) |
+| `AWS_REGION` | Region for deploy and Bedrock (defaults to `us-east-1`) |
 | `MODEL_ID` | Default Bedrock model ID when the request omits `model` (defaults to `amazon.nova-lite-v1:0`) |
 | `MODEL_MAP` | Optional JSON object of request alias → Bedrock ID/ARN (merges with built-in aliases) |
 
@@ -316,7 +316,7 @@ Local commands use profile `bitaihang09132026`. After deploy, get a Function URL
 ```bash
 aws lambda get-function-url-config \
   --profile bitaihang09132026 \
-  --region us-east-2 \
+  --region us-east-1 \
   --function-name bedrock-inference \
   --query FunctionUrl \
   --output text
@@ -346,7 +346,7 @@ Example (`ministral-8b`):
 ```bash
 FUNCTION_URL=$(aws lambda get-function-url-config \
   --profile bitaihang09132026 \
-  --region us-east-2 \
+  --region us-east-1 \
   --function-name bedrock-inference \
   --query FunctionUrl \
   --output text)

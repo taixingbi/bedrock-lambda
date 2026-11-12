@@ -29,7 +29,7 @@ if [[ -z "${FUNCTION_URL:-}" ]]; then
     --function-name "${FUNCTION_NAME}" \
     --query FunctionUrl \
     --output text 2>/dev/null)"; then
-    die "could not look up Function URL (missing AWS profile/creds). Set FUNCTION_URL, e.g. FUNCTION_URL='https://….lambda-url.us-east-2.on.aws/' ./smoke.sh"
+    die "could not look up Function URL (missing AWS profile/creds). Set FUNCTION_URL, e.g. FUNCTION_URL='https://….lambda-url.us-east-1.on.aws/' ./smoke.sh"
   fi
 fi
 

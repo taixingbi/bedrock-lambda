@@ -2,7 +2,7 @@
 # Shared Terraform setup. Sourced by scripts/tf.sh. Expects ROOT.
 
 tf_prepare() {
-  REGION="${AWS_REGION:-us-east-2}"
+  REGION="${AWS_REGION:-us-east-1}"
   TF_DIR="${ROOT}/terraform"
   ZIP="${ROOT}/terraform/.build/lambda.zip"
   STATE_KEY="terraform.tfstate"
