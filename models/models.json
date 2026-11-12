@@ -8,7 +8,7 @@
   {
     "alias": "nova-micro",
     "aliases": ["amazon.nova-micro-v1:0"],
-    "id": "amazon.nova-micro-v1:0",
+    "id": "us.amazon.nova-micro-v1:0",
     "kind": "bedrock",
     "enable": true
   },
@@ -20,7 +20,7 @@
   {
     "alias": "nova-pro",
     "aliases": ["amazon.nova-pro-v1:0"],
-    "id": "amazon.nova-pro-v1:0",
+    "id": "us.amazon.nova-pro-v1:0",
     "kind": "bedrock",
     "enable": true
   },
@@ -162,6 +162,6 @@
     "aliases": ["MiniLM-L12-H384", "microsoft/MiniLM-L12-H384-uncased"],
     "id": "minilm-l12-h384",
     "kind": "minilm",
-    "enable": true
+    "enable": false
   }
 ]

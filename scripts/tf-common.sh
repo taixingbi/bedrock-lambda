@@ -2,22 +2,16 @@
 # Shared Terraform setup. Sourced by scripts/tf.sh. Expects ROOT.
 
 tf_prepare() {
-  local requested="${1:-${TF_ENV:-}}"
-  # shellcheck source=env-name.sh
-  source "${ROOT}/scripts/env-name.sh"
-  ENV="${requested}"
-  FUNCTION_NAME="$(env_function_name "${ENV}")"
-  REGION="${AWS_REGION:-us-east-1}"
-  TF_DIR="${ROOT}/terraform/environments"
-  VAR_FILE="${ENV}.tfvars"
+  REGION="${AWS_REGION:-us-east-2}"
+  TF_DIR="${ROOT}/terraform"
   ZIP="${ROOT}/terraform/.build/lambda.zip"
-  STATE_KEY="environments/${ENV}/terraform.tfstate"
-  API_KEY="$(resolve_api_key "${ENV}")"
+  STATE_KEY="terraform.tfstate"
 }
 
 tf_export_vars() {
   local bucket="$1"
   export TF_VAR_aws_region="${REGION}"
+  export TF_VAR_function_name="${FUNCTION_NAME}"
   export TF_VAR_lambda_zip="${ZIP}"
   export TF_VAR_model_id="${MODEL_ID:-amazon.nova-lite-v1:0}"
   export TF_VAR_model_map="${MODEL_MAP:-}"
@@ -54,23 +48,6 @@ tf_ensure_state_bucket() {
   aws s3api put-bucket-encryption --bucket "${bucket}" \
     --server-side-encryption-configuration \
     '{"Rules":[{"ApplyServerSideEncryptionByDefault":{"SSEAlgorithm":"AES256"}}]}'
-}
-
-# Prod used to live at bedrock-inference-mvp.tfstate in the flat root module.
-tf_seed_prod_state() {
-  local bucket="$1"
-  [[ "${ENV}" == "prod" ]] || return 0
-  local old_key="bedrock-inference-mvp.tfstate"
-  if ! aws s3api head-object --bucket "${bucket}" --key "${old_key}" >/dev/null 2>&1; then
-    return 0
-  fi
-  tf_init "${bucket}"
-  if terraform -chdir="${TF_DIR}" state list 2>/dev/null | grep -q .; then
-    return 0
-  fi
-  echo "Copying existing state ${old_key} → ${STATE_KEY}…"
-  aws s3 cp "s3://${bucket}/${old_key}" "s3://${bucket}/${STATE_KEY}" --region "${REGION}"
-  tf_init "${bucket}"
 }
 
 tf_ensure_zip() {

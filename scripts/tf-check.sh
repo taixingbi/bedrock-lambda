@@ -9,5 +9,5 @@ echo "terraform fmt…"
 terraform fmt -check -recursive "${ROOT}/terraform"
 
 echo "terraform validate…"
-terraform -chdir="${ROOT}/terraform/environments" init -backend=false -input=false
-terraform -chdir="${ROOT}/terraform/environments" validate
+terraform -chdir="${ROOT}/terraform" init -backend=false -input=false
+terraform -chdir="${ROOT}/terraform" validate

@@ -12,8 +12,10 @@ if [[ -z "${AWS_PROFILE:-}" && -z "${AWS_ACCESS_KEY_ID:-}" && -z "${AWS_WEB_IDEN
     export AWS_PROFILE=bitaihang09132026
   fi
 fi
-export AWS_REGION="${AWS_REGION:-us-east-1}"
+export AWS_REGION="${AWS_REGION:-us-east-2}"
 export AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION:-${AWS_REGION}}"
+export FUNCTION_NAME="${FUNCTION_NAME:-bedrock-inference}"
+API_KEY="${API_KEY:-${INFERENCE_API_KEY:-}}"
 
 # Models catalog bucket in the caller account (not the old cross-account bucket).
 models_bucket() {
@@ -30,27 +32,29 @@ models_bucket() {
 ensure_models_bucket() {
   local name region
   name="$(models_bucket)"
-  region="${AWS_REGION:-us-east-1}"
+  region="${AWS_REGION:-us-east-2}"
   # head-bucket prints JSON on stdout in newer AWS CLI; callers capture this function.
   if aws s3api head-bucket --bucket "${name}" >/dev/null 2>&1; then
     printf '%s' "${name}"
     return
   fi
   echo "Creating models bucket ${name}…" >&2
+  # Callers run this inside $(…), where set -e is off, so check each step.
   if [[ "${region}" == "us-east-1" ]]; then
     aws s3api create-bucket --bucket "${name}" --region "${region}" >/dev/null
   else
     aws s3api create-bucket --bucket "${name}" --region "${region}" \
       --create-bucket-configuration "LocationConstraint=${region}" >/dev/null
-  fi
+  fi || { echo "error: could not create models bucket ${name}" >&2; return 1; }
   aws s3api put-bucket-versioning --bucket "${name}" \
-    --versioning-configuration Status=Enabled >/dev/null
-  aws s3api put-public-access-block --bucket "${name}" \
-    --public-access-block-configuration \
-    BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true \
-    >/dev/null
-  aws s3api put-bucket-encryption --bucket "${name}" \
-    --server-side-encryption-configuration \
-    '{"Rules":[{"ApplyServerSideEncryptionByDefault":{"SSEAlgorithm":"AES256"}}]}' >/dev/null
+    --versioning-configuration Status=Enabled >/dev/null \
+    && aws s3api put-public-access-block --bucket "${name}" \
+      --public-access-block-configuration \
+      BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true \
+      >/dev/null \
+    && aws s3api put-bucket-encryption --bucket "${name}" \
+      --server-side-encryption-configuration \
+      '{"Rules":[{"ApplyServerSideEncryptionByDefault":{"SSEAlgorithm":"AES256"}}]}' >/dev/null \
+    || { echo "error: could not configure models bucket ${name}" >&2; return 1; }
   printf '%s' "${name}"
 }

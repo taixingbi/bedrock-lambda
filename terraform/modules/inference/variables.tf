@@ -1,11 +1,6 @@
 variable "aws_region" {
   type    = string
-  default = "us-east-1"
-}
-
-variable "environment" {
-  type        = string
-  description = "dev or prod. Used for tags, not for a Git branch."
+  default = "us-east-2"
 }
 
 variable "function_name" {

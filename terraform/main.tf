@@ -1,8 +1,7 @@
 module "inference" {
-  source = "../modules/inference"
+  source = "./modules/inference"
 
   aws_region       = var.aws_region
-  environment      = var.environment
   function_name    = var.function_name
   lambda_zip       = var.lambda_zip
   model_id         = var.model_id

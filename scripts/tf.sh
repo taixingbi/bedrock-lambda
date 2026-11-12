@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Terraform for one environment. State is selected by the environment name.
+# Terraform for the stack.
 #
-#   ./scripts/tf.sh plan dev
-#   ./scripts/tf.sh apply prod
-#   ./scripts/tf.sh destroy dev
+#   ./scripts/tf.sh plan
+#   ./scripts/tf.sh apply
+#   ./scripts/tf.sh destroy
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -16,11 +16,11 @@ CMD="${1:-}"
 case "${CMD}" in
   plan|apply|destroy) ;;
   *)
-    echo "usage: $0 plan|apply|destroy dev|prod" >&2
+    echo "usage: $0 plan|apply|destroy" >&2
     exit 1
     ;;
 esac
-tf_prepare "${2:-}"
+tf_prepare
 
 if [[ "${CMD}" == "apply" && -z "${API_KEY}" ]]; then
   echo "error: API_KEY or INFERENCE_API_KEY is required" >&2
@@ -38,7 +38,7 @@ else
 fi
 
 tf_account_bucket
-echo "${CMD} ${ENV} (${FUNCTION_NAME}) in account ${ACCOUNT_ID}…"
+echo "${CMD} ${FUNCTION_NAME} in account ${ACCOUNT_ID}…"
 
 if [[ "${CMD}" == "destroy" ]] && ! aws s3api head-bucket --bucket "${BUCKET}" 2>/dev/null; then
   echo "No state bucket ${BUCKET}; nothing to destroy."
@@ -47,24 +47,21 @@ fi
 
 tf_ensure_state_bucket "${BUCKET}"
 tf_export_vars "${BUCKET}"
-if [[ "${CMD}" != "destroy" ]]; then
-  tf_seed_prod_state "${BUCKET}"
-fi
 tf_init "${BUCKET}"
 
 if [[ "${CMD}" == "destroy" ]]; then
   if ! terraform -chdir="${TF_DIR}" state list 2>/dev/null | grep -q .; then
-    echo "Empty state for ${ENV}; nothing to destroy."
+    echo "Empty state; nothing to destroy."
     exit 0
   fi
-  terraform -chdir="${TF_DIR}" destroy -input=false -auto-approve -var-file="${VAR_FILE}"
+  terraform -chdir="${TF_DIR}" destroy -input=false -auto-approve
   echo
-  echo "Destroy complete (${ENV} / ${FUNCTION_NAME})."
+  echo "Destroy complete (${FUNCTION_NAME})."
   exit 0
 fi
 
 if [[ "${CMD}" == "plan" ]]; then
-  terraform -chdir="${TF_DIR}" plan -input=false -no-color -var-file="${VAR_FILE}"
+  terraform -chdir="${TF_DIR}" plan -input=false -no-color
   exit 0
 fi
 
@@ -86,15 +83,15 @@ if isinstance(stmts, dict):
 sys.exit(0 if sys.argv[2] in {s.get("Sid") for s in stmts} else 1)
 ' "${policy}" "${sid}"; then
     echo "Importing existing Lambda permission ${sid}…"
-    terraform -chdir="${TF_DIR}" import -input=false -no-color -var-file="${VAR_FILE}" \
+    terraform -chdir="${TF_DIR}" import -input=false -no-color \
       "${addr}" "${FUNCTION_NAME}/${sid}"
   fi
 }
 
 adopt_lambda_permission module.inference.aws_lambda_permission.function_invoke FunctionURLAllowInvoke
 
-terraform -chdir="${TF_DIR}" apply -input=false -auto-approve -var-file="${VAR_FILE}"
+terraform -chdir="${TF_DIR}" apply -input=false -auto-approve
 echo
-echo "Function URL (${ENV}):"
+echo "Function URL:"
 terraform -chdir="${TF_DIR}" output -raw function_url
 echo

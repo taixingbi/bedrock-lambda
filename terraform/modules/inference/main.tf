@@ -3,8 +3,7 @@ data "aws_caller_identity" "current" {}
 locals {
   adapter_layer = "arn:aws:lambda:${var.aws_region}:753240598075:layer:LambdaAdapterLayerX86:28"
   tags = {
-    Environment = var.environment
-    Service     = "bedrock-gateway"
+    Service = "bedrock-gateway"
   }
 }
 

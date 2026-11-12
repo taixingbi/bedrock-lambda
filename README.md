@@ -13,13 +13,13 @@ Python Lambda with a Function URL that sends prompts to Amazon Bedrock via the b
 | --- | --- | --- |
 | `INFERENCE_API_KEY` | Secret | Shared secret clients must send as `x-api-key` |
 
-Optional overrides when DEV and PROD are different accounts: variables `AWS_ROLE_ARN_DEV` / `AWS_ROLE_ARN_PROD`, secrets `INFERENCE_API_KEY_DEV` / `INFERENCE_API_KEY_PROD`. Until those are set, both environments use `AWS_ROLE_ARN` (default `arn:aws:iam::103714492562:role/github-actions-deploy`) and `INFERENCE_API_KEY`. State keys stay separate either way.
+Deploys assume `AWS_ROLE_ARN` (default `arn:aws:iam::767579108272:role/github-actions-deploy`) and use `INFERENCE_API_KEY`.
 
 Optional repository variables:
 
 | Variable | Purpose |
 | --- | --- |
-| `AWS_REGION` | Region for deploy and Bedrock (defaults to `us-east-1`) |
+| `AWS_REGION` | Region for deploy and Bedrock (defaults to `us-east-2`; account 767579108272 only allows S3 and Lambda there) |
 | `MODEL_ID` | Default Bedrock model ID when the request omits `model` (defaults to `amazon.nova-lite-v1:0`) |
 | `MODEL_MAP` | Optional JSON object of request alias → Bedrock ID/ARN (merges with built-in aliases) |
 
@@ -69,7 +69,7 @@ Recommended open models (us-east-1, Bedrock Runtime):
 | Gemma 3 27B | 27B | `gemma-3-27b` | `google.gemma-3-27b-it` | ✅ | ✅ | ⭐⭐⭐ |
 | Qwen3 32B | 32B | `qwen3-32b` | `qwen.qwen3-32b-v1:0` | ✅ | ✅ | ⭐⭐⭐⭐⭐ |
 
-`./smoke.sh` with no model name hits every [`models/models.json`](models/models.json) entry with `"enable": true` (sync + stream), in file order. Pass names to smoke only those: `./smoke.sh dev ministral-8b qwen3-32b`.
+`./smoke.sh` with no model name hits every [`models/models.json`](models/models.json) entry with `"enable": true` (sync + stream), in file order. Pass names to smoke only those: `./smoke.sh ministral-8b qwen3-32b`.
 
 Override or add aliases with the `MODEL_MAP` env / repo variable, e.g.:
 
@@ -295,58 +295,48 @@ Set `"stream": true` to receive OpenAI SSE (`text/event-stream`) chunks (`chat.c
 
 ## Deploy
 
-Environments are directories and state files, not branches. `feature/*` → pull request → `main`. The same commit is what DEV runs, and what PROD runs after approval.
+One deployment: Lambda `bedrock-inference`, state key `terraform.tfstate` in bucket `bedrock-inference-tfstate-<account-id>`. `feature/*` → pull request → `main`.
 
 ```
 feature/* → PR
-              ├── terraform fmt / validate / plan (dev and prod)
+              ├── terraform fmt / validate / plan
               └── compile the app
             merge
               ↓
             main
-              ├── infra apply DEV
-              ├── app publish DEV
-              ├── DEV validation
-              ├── GitHub Environment `production` approval
-              ├── infra apply PROD
-              └── app publish PROD
+              ├── infra apply
+              ├── app publish
+              └── validation
 ```
 
-PROD waits on the GitHub Environment `production`. After DEV validation, open the Actions run and choose **Review deployments → Approve and deploy**. That button appears only after a required reviewer is set: Settings → Environments → `production` → Required reviewers. Turn off **Allow administrators to bypass**, or the repo owner skips the review. Leave **Prevent self-review** off so the person who pushed can still approve.
-
-| Environment | Function | State key |
-| --- | --- | --- |
-| dev | `bedrock-inference-dev` | `environments/dev/terraform.tfstate` |
-| prod | `bedrock-inference-prod` | `environments/prod/terraform.tfstate` |
-
-Renaming a function replaces that Lambda and its Function URL. Point `AWS_ROLE_ARN_DEV` and `AWS_ROLE_ARN_PROD` at different accounts when you have them; do not add a `dev` or `prod` branch.
+Renaming the function (`FUNCTION_NAME`) replaces the Lambda and its Function URL.
 
 Local commands use profile `bitaihang09132026`. After deploy, get a Function URL:
 
 ```bash
 aws lambda get-function-url-config \
   --profile bitaihang09132026 \
-  --region us-east-1 \
-  --function-name bedrock-inference-prod
+  --region us-east-2 \
+  --function-name bedrock-inference \
   --query FunctionUrl \
   --output text
 ```
 
-Or in the AWS Console: Lambda → `bedrock-inference-prod` → **Configuration** → **Function URL**.
+Or in the AWS Console: Lambda → `bedrock-inference` → **Configuration** → **Function URL**.
 
 ### Manual deploy
 
 ```bash
 export API_KEY='your-shared-secret'
-./scripts/tf.sh apply dev
-./scripts/app-deploy.sh dev
-./scripts/tf.sh plan prod
+./scripts/tf.sh plan
+./scripts/tf.sh apply
+./scripts/app-deploy.sh
 ```
 
-Tear down one environment (the other state's resources stay):
+Tear down:
 
 ```bash
-./scripts/tf.sh destroy dev
+./scripts/tf.sh destroy
 ```
 
 ## Call the API
@@ -356,8 +346,8 @@ Example (`ministral-8b`):
 ```bash
 FUNCTION_URL=$(aws lambda get-function-url-config \
   --profile bitaihang09132026 \
-  --region us-east-1 \
-  --function-name bedrock-inference-prod
+  --region us-east-2 \
+  --function-name bedrock-inference \
   --query FunctionUrl \
   --output text)
 INFERENCE_API_KEY='1234'
@@ -374,13 +364,13 @@ curl -sS -N -X POST "${FUNCTION_URL}v1/chat/completions" \
   }'
 ```
 
-See [`smoke.sh`](smoke.sh) for a sync+stream smoke test against that environment's Function URL:
+See [`smoke.sh`](smoke.sh) for a sync+stream smoke test against the Function URL:
 
 ```bash
-./smoke.sh dev ministral-8b
-./smoke.sh prod
-# No AWS profile needed when FUNCTION_URL is set (dev URL below):
-FUNCTION_URL='https://iesd7g4dvnfnaun7s3hpvzgqo40hyjlp.lambda-url.us-east-1.on.aws/' bash smoke.sh
+./smoke.sh ministral-8b
+./smoke.sh
+# No AWS profile needed when FUNCTION_URL is set:
+FUNCTION_URL='https://ja3pt2hyq2ywiti3daf6ic74e40azvjv.lambda-url.us-east-2.on.aws/' bash smoke.sh
 ```
 
 Amazon Nova Pro (marketplace):
@@ -514,7 +504,7 @@ curl -sS -X POST "${FUNCTION_URL}v1/chat/completions" \
 Run the FastAPI app locally (uses your AWS credentials for Bedrock):
 
 ```bash
-export API_KEY=local-dev-key
+export API_KEY=local-key
 export MODEL_ID=amazon.nova-lite-v1:0
 pip install -r src/requirements.txt
 uvicorn app:app --app-dir src --host 127.0.0.1 --port 8080
@@ -525,7 +515,7 @@ Then:
 ```bash
 curl -sS -N -X POST "http://127.0.0.1:8080/v1/chat/completions" \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer local-dev-key" \
+  -H "Authorization: Bearer local-key" \
   -d '{
     "model": "ministral-8b",
     "messages": [{"role": "user", "content": "Say hello in one short sentence."}],

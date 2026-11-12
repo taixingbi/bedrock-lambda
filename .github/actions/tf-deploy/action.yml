@@ -1,12 +1,9 @@
 name: Terraform deploy
-description: Assume the environment role and apply infra or publish app code
+description: Assume the deploy role and apply infra or publish app code
 inputs:
   role-to-assume:
     required: true
     description: Role assumed with STS AssumeRoleWithWebIdentity
-  tf-env:
-    required: true
-    description: dev or prod
   command:
     required: false
     default: apply
@@ -50,7 +47,7 @@ runs:
       uses: aws-actions/configure-aws-credentials@v6
       with:
         role-to-assume: ${{ inputs.role-to-assume }}
-        role-session-name: ${{ inputs.role-session-name }}-${{ inputs.tf-env }}
+        role-session-name: ${{ inputs.role-session-name }}
         aws-region: ${{ env.AWS_REGION }}
 
     - name: Apply infra
@@ -58,9 +55,9 @@ runs:
       shell: bash
       env:
         SKIP_PACKAGE: "0"
-      run: ./scripts/tf.sh apply ${{ inputs.tf-env }}
+      run: ./scripts/tf.sh apply
 
     - name: Publish app code
       if: ${{ inputs.command == 'app' }}
       shell: bash
-      run: ./scripts/app-deploy.sh ${{ inputs.tf-env }}
+      run: ./scripts/app-deploy.sh

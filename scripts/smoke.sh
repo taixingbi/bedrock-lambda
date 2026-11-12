@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Smoke-test marketplace aliases (sync + stream).
 #
-#   ./smoke.sh dev ministral-8b
+#   ./smoke.sh ministral-8b
 #   ./scripts/smoke.sh ministral-8b llama4
 #   FUNCTION_URL='https://..../' ./scripts/smoke.sh ministral-8b
 #
@@ -26,10 +26,10 @@ if [[ -z "${FUNCTION_URL:-}" ]]; then
   command -v aws >/dev/null || die "set FUNCTION_URL, or install the aws CLI"
   if ! FUNCTION_URL="$(aws lambda get-function-url-config \
     --region "${AWS_REGION}" \
-    --function-name "${FUNCTION_NAME:-bedrock-inference-prod}" \
+    --function-name "${FUNCTION_NAME}" \
     --query FunctionUrl \
     --output text 2>/dev/null)"; then
-    die "could not look up Function URL (missing AWS profile/creds). Set FUNCTION_URL, e.g. FUNCTION_URL='https://….lambda-url.us-east-1.on.aws/' ./smoke.sh"
+    die "could not look up Function URL (missing AWS profile/creds). Set FUNCTION_URL, e.g. FUNCTION_URL='https://….lambda-url.us-east-2.on.aws/' ./smoke.sh"
   fi
 fi
 

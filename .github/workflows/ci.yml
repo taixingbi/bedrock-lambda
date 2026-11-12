@@ -8,8 +8,8 @@ permissions:
   id-token: write
 
 env:
-  AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
-  AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN || 'arn:aws:iam::103714492562:role/github-actions-deploy' }}
+  AWS_REGION: ${{ vars.AWS_REGION || 'us-east-2' }}
+  AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN || 'arn:aws:iam::767579108272:role/github-actions-deploy' }}
 
 jobs:
   check:
@@ -34,10 +34,6 @@ jobs:
   plan:
     needs: check
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        environment: [dev, prod]
     steps:
       - uses: actions/checkout@v5
 
@@ -47,15 +43,13 @@ jobs:
 
       - uses: aws-actions/configure-aws-credentials@v6
         with:
-          role-to-assume: ${{ matrix.environment == 'prod' && (vars.AWS_ROLE_ARN_PROD || env.AWS_ROLE_ARN) || (vars.AWS_ROLE_ARN_DEV || env.AWS_ROLE_ARN) }}
-          role-session-name: gha-plan-${{ matrix.environment }}
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          role-session-name: gha-plan
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Plan
         env:
           INFERENCE_API_KEY: ${{ secrets.INFERENCE_API_KEY }}
-          INFERENCE_API_KEY_DEV: ${{ secrets.INFERENCE_API_KEY_DEV }}
-          INFERENCE_API_KEY_PROD: ${{ secrets.INFERENCE_API_KEY_PROD }}
           MODEL_ID: ${{ vars.MODEL_ID }}
           MODEL_MAP: ${{ vars.MODEL_MAP }}
-        run: ./scripts/tf.sh plan ${{ matrix.environment }}
+        run: ./scripts/tf.sh plan

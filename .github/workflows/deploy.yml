@@ -1,8 +1,6 @@
 name: Deploy
 
-# One main commit is applied to both environments. Git branches are not environments.
-# DEV applies automatically. PROD waits on the GitHub Environment named production
-# until a required reviewer clicks Review deployments → Approve and deploy.
+# Each push to main applies infra, publishes the app code, then validates the Function URL.
 
 on:
   push:
@@ -19,80 +17,46 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
-  AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN || 'arn:aws:iam::103714492562:role/github-actions-deploy' }}
+  AWS_REGION: ${{ vars.AWS_REGION || 'us-east-2' }}
+  AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN || 'arn:aws:iam::767579108272:role/github-actions-deploy' }}
 
 jobs:
-  infra-dev:
-    environment: dev
+  infra:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/tf-deploy
         with:
-          role-to-assume: ${{ vars.AWS_ROLE_ARN_DEV || env.AWS_ROLE_ARN }}
-          tf-env: dev
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
         env:
           AWS_REGION: ${{ env.AWS_REGION }}
-          API_KEY: ${{ secrets.INFERENCE_API_KEY_DEV || secrets.INFERENCE_API_KEY }}
+          API_KEY: ${{ secrets.INFERENCE_API_KEY }}
           MODEL_ID: ${{ vars.MODEL_ID }}
           MODEL_MAP: ${{ vars.MODEL_MAP }}
 
-  app-dev:
-    needs: infra-dev
-    environment: dev
+  app:
+    needs: infra
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/tf-deploy
         with:
-          role-to-assume: ${{ vars.AWS_ROLE_ARN_DEV || env.AWS_ROLE_ARN }}
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
           command: app
-          tf-env: dev
         env:
           AWS_REGION: ${{ env.AWS_REGION }}
 
-  validate-dev:
-    needs: app-dev
-    environment: dev
+  validate:
+    needs: app
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: aws-actions/configure-aws-credentials@v6
         with:
-          role-to-assume: ${{ vars.AWS_ROLE_ARN_DEV || env.AWS_ROLE_ARN }}
-          role-session-name: gha-validate-dev
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          role-session-name: gha-validate
           aws-region: ${{ env.AWS_REGION }}
-      - name: Validate DEV
+      - name: Validate
         env:
-          INFERENCE_API_KEY: ${{ secrets.INFERENCE_API_KEY_DEV || secrets.INFERENCE_API_KEY }}
-        run: ./scripts/validate-env.sh dev
-
-  infra-prod:
-    needs: validate-dev
-    environment: production
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: ./.github/actions/tf-deploy
-        with:
-          role-to-assume: ${{ vars.AWS_ROLE_ARN_PROD || env.AWS_ROLE_ARN }}
-          tf-env: prod
-        env:
-          AWS_REGION: ${{ env.AWS_REGION }}
-          API_KEY: ${{ secrets.INFERENCE_API_KEY_PROD || secrets.INFERENCE_API_KEY }}
-          MODEL_ID: ${{ vars.MODEL_ID }}
-          MODEL_MAP: ${{ vars.MODEL_MAP }}
-
-  app-prod:
-    needs: infra-prod
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: ./.github/actions/tf-deploy
-        with:
-          role-to-assume: ${{ vars.AWS_ROLE_ARN_PROD || env.AWS_ROLE_ARN }}
-          command: app
-          tf-env: prod
-        env:
-          AWS_REGION: ${{ env.AWS_REGION }}
+          INFERENCE_API_KEY: ${{ secrets.INFERENCE_API_KEY }}
+        run: ./scripts/validate.sh

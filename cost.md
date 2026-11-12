@@ -8,16 +8,16 @@ Cost Explorer is not enabled on this account. Figures below are from a resource 
 
 ## Standby
 
-Leaving both Lambdas deployed does not add a daily charge. Enabling Bedrock model access does not either.
+Leaving the Lambda deployed does not add a daily charge. Enabling Bedrock model access does not either.
 
 | Service | What exists | Standby |
 | --- | --- | --- |
 | S3 | 1.8 GB across two buckets, versioning on | about $0.04 / month |
-| Lambda | `bedrock-inference-prod` and `bedrock-inference-dev`, 2048 MB, no provisioned concurrency | $0 |
+| Lambda | `bedrock-inference`, 2048 MB, no provisioned concurrency | $0 |
 | Lambda code storage | 185 MB of the 75 GB free allowance | $0 |
 | Function URL | public URL, auth type NONE | $0 |
 | Bedrock | on-demand only; no provisioned throughput, no imported models | $0 |
-| CloudWatch Logs | two log groups, 0 bytes, never expire | $0 |
+| CloudWatch Logs | one log group, 0 bytes, never expire | $0 |
 | CloudWatch alarms / dashboards | none | $0 |
 | KMS | AWS-managed Lambda key only (`alias/aws/lambda`) | $0 |
 | VPC | default VPC only; no NAT, no public IPv4, no instances, no volumes | $0 |
